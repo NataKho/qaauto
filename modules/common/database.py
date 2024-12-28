@@ -1,35 +1,59 @@
-import psycopg2
+import sqlite3
 
-# Database connection parameters
-db_params = {
-    "dbname": "qa_auto",
-    "user": "postgres",
-    "password": "1234",
-    "host": "localhost",  # or IP address, e.g., "127.0.0.1"
-    "port": "5432"  # Default PostgreSQL port
-}
 
-try:
-    # Establishing the connection
-    connection = psycopg2.connect(r'/home/natakhor/repos/LnD?Become QA Auto' + r'become_qa_auto.db')
+class Database():
+    def __init__(self):
+        self.connection = sqlite3.connect('C:/cygwin64/home/khoru/qaauto/become_qa_auto.db')
+        self.cursor = self.connection.cursor()
 
-    # Create a cursor object to interact with the database
-    cursor = connection.cursor()
+    def test_connection(self):
+        sqlite_select_Query = "SELECT sqlite_version();"
+        self.cursor.execute(sqlite_select_Query)
+        record = self.cursor.fetchall()
+        print(f"Connected successfully. SQLite Database Version is: {record} ")
 
-    # Example: Execute a simple query
-    cursor.execute("SELECT version();")
-    db_version = cursor.fetchone()
-    print(f"PostgreSQL database version: {db_version}")
+    def get_all_users(self):
+        query = ("SELECT * FROM Customers")
+        self.cursor.execute(query)
+        record = self.cursor.fetchall()
+        return record
 
-    # Commit transactions (if needed)
-    connection.commit()
+    def get_user_address_by_name(self, name):
+        query = f"SELECT address, city, postalCode, country FROM customers WHERE name = '{name}'"
+        self.cursor.execute(query)
+        record = self.cursor.fetchall()
+        return record
 
-except Exception as error:
-    print(f"Error connecting to PostgreSQL database: {error}")
 
-finally:
-    # Close the cursor and connection to free resources
-    if cursor:
-        cursor.close()
-    if connection:
-        connection.close()
+    def update_product_qnt_by_id(self, product_id, qnt):
+        query = f"UPDATE products SET quantity = {qnt} WHERE id = {product_id}"
+        self.cursor.execute(query)
+        self.connection.commit()
+
+    def select_product_qnt_by_id(self, product_id):
+        query = f"SELECT quantity FROM products WHERE id = {product_id}"
+        self.cursor.execute(query)
+        record = self.cursor.fetchall()
+        return record
+
+    def insert_product(self, product_id, name, description, qnt):
+        query = f"INSERT OR REPLACE INTO products (id, name, description, quantity) \
+            VALUES ({product_id}, '{name}', '{description}', {qnt})"
+        self.cursor.execute(query)
+        self.connection.commit()
+
+    def delete_product_by_id(self, product_id):
+        query = f"DELETE FROM products WHERE id = {product_id}"
+        self.cursor.execute(query)
+        self.connection.commit()
+
+
+    def get_detailed_orders(self):
+        query = "SELECT orders.id, customers.name, products.name, \
+                 products.description, orders.order_date \
+                 FROM orders \
+                 JOIN customers ON orders.customer_id = customers.id \
+                 JOIN products ON orders.product_id = products.id"
+        self.cursor.execute(query)
+        record = self.cursor.fetchall()
+        return record
