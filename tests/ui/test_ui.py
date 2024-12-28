@@ -30,7 +30,7 @@ def test_check_incorrect_username():
     #емулюємо клік лівою кнопкою мишки
     btn_elem.click()
 
-    assert driver.title == "Sign in GitHub - GitHub"
+    assert driver.title == "Sign in to GitHub · GitHub"
 
     time.sleep(3)
 
